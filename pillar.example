@@ -55,6 +55,8 @@ gitlab:
 
 #runner
   runner:
+    custom_repo_url: http://my-mirror.example.com/
+    custom_repo_gpgkey: http://custom-url.example.com/GPG-KEY-gitlab
     downloadpath: "https://packages.gitlab.com/runner/gitlab-runner/packages/linuxmint/sonya/gitlab-runner_10.4.0_{{ grains['osarch'] }}.deb/download"
     username: "gitlab-runner"
     # default: gitlab-runner

@@ -7,8 +7,16 @@ gitlab-runner repo:
   pkgrepo.managed:
     - humanname: gitlab-runner debian repo
     - file: /etc/apt/sources.list.d/gitlab-runner.list
+  {%- if gitlab.runner.custom_repo_url != '' %}
+    - name: deb {{ gitlab.runner.custom_repo_url }} {{ grains['oscodename'] }} main
+  {%- else %}
     - name: deb https://packages.gitlab.com/runner/gitlab-runner/{{ grains['os']|lower }}/ {{ grains['oscodename'] }} main
+  {%- endif %}
+  {%- if gitlab.runner.custom_repo_gpgkey != '' %}
+    - key_url: {{ gitlab.runner.custom_repo_gpgkey }}
+  {%- else %}
     - key_url: https://packages.gitlab.com/runner/gitlab-runner/gpgkey
+  {%- endif %}
 
 gitlab-install_pkg:
   pkg.installed:
@@ -40,13 +48,15 @@ gitlab-install_runserver_create_user:
 gitlab-install_runserver3:
   cmd.run:
     - name: "CI_SERVER_URL='{{gitlab.runner.url}}' REGISTRATION_TOKEN='{{gitlab.runner.token}}' RUNNER_EXECUTOR='{{gitlab.runner.executor}}' /usr/bin/gitlab-runner  register --non-interactive"
-    - creates: /etc/gitlab-runner/config.toml
     - require:
       - user: gitlab-install_runserver_create_user
+    - unless: grep -q runners /etc/gitlab-runner/config.toml
 
 gitlab-runner:
   service.running:
     - enable: True
     - require:
       - pkg: gitlab-install_pkg
+      - cmd: gitlab-install_runserver3
+    - watch:
       - cmd: gitlab-install_runserver3
