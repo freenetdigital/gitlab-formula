@@ -60,7 +60,18 @@ gitlab:
     downloadpath: "https://packages.gitlab.com/runner/gitlab-runner/packages/linuxmint/sonya/gitlab-runner_10.4.0_{{ grains['osarch'] }}.deb/download"
     username: "gitlab-runner"
     # default: gitlab-runner
-    url: "url gitlab-ci" # MANDATORY
-    token: "token gitlab-ci" # MANDATORY
     home: /home/gitlab-runner
-    executor: shell
+
+    runners_
+    - name: '{{ grains['host'] }}_01'
+      url: "url gitlab-ci" # MANDATORY
+      token: "token gitlab-ci" # MANDATORY
+      executor: shell
+
+    - name: '{{ grains['host'] }}_02'
+      url: "url gitlab-ci" # MANDATORY
+      token: "token gitlab-ci" # MANDATORY
+      executor: docker
+      env:
+        DOCKER_AUTH_CONFIG: '{\"auths\":{\"my.private.repo\":{\"auth\": \"<INSERT AUTH STRING HERE>\"}}}'
+      extra_args: "--docker-privileged --docker-image=docker:stable"

@@ -45,18 +45,36 @@ gitlab-install_runserver_create_user:
     - require:
       - group: gitlab-create_group
 
-gitlab-install_runserver3:
+{%- for runner in gitlab.runner.runners %}
+gitlab-install_runner_{{ runner.name }}:
   cmd.run:
-    - name: "CI_SERVER_URL='{{gitlab.runner.url}}' REGISTRATION_TOKEN='{{gitlab.runner.token}}' RUNNER_EXECUTOR='{{gitlab.runner.executor}}' /usr/bin/gitlab-runner  register --non-interactive"
+    - name: "gitlab-runner register --non-interactive --name {{ runner.name }} --url {{ runner.url }} --registration-token {{ runner.token }} --executor {{ runner.executor }} {% for k, v in runner.env.items() %}--env='{{ k }}={{ v }}' {% endfor %} {{ runner.extra_args }}"
     - require:
       - user: gitlab-install_runserver_create_user
-    - unless: grep -q runners /etc/gitlab-runner/config.toml
+    - unless: gitlab-runner list 2>&1 | grep "\\b{{ runner.name }}\\b"
+{%- endfor %}
+
+runner-concurrent-setting:
+  file.replace:
+    - name: /etc/gitlab-runner/config.toml
+    - pattern: "^concurrent = \\d+"
+    - repl: "concurrent = {{ gitlab.runner.runners|length }}"
+    - count: 1
+    - onchanges:
+{%- for runner in gitlab.runner.runners %}
+      - cmd: gitlab-install_runner_{{ runner.name }}
+{%- endfor %}
 
 gitlab-runner:
   service.running:
     - enable: True
     - require:
       - pkg: gitlab-install_pkg
-      - cmd: gitlab-install_runserver3
+{%- for runner in gitlab.runner.runners %}
+      - cmd: gitlab-install_runner_{{ runner.name }}
+{%- endfor %}
     - watch:
-      - cmd: gitlab-install_runserver3
+{%- for runner in gitlab.runner.runners %}
+      - cmd: gitlab-install_runner_{{ runner.name }}
+{%- endfor %}
+      - file: runner-concurrent-setting
