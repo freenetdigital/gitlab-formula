@@ -89,7 +89,7 @@ git-config:
 
 gitlab-initialize:
   cmd.wait:
-    - user: git
+    - runas: git
     - cwd: /home/git/gitlab
     - name: echo yes | bundle exec rake gitlab:setup RAILS_ENV=production
     - shell: /bin/bash
@@ -104,7 +104,7 @@ gitlab-initialize:
 # Based on https://gitlab.com/gitlab-org/gitlab-ce/blob/master/lib/gitlab/upgrader.rb
 gitlab-gems:
   cmd.wait:
-    - user: git
+    - runas: git
     - cwd: /home/git/gitlab
     - name: bundle install --deployment --without development test mysql aws
     - shell: /bin/bash
@@ -119,7 +119,7 @@ gitlab-gems:
 
 gitlab-migrate-db:
   cmd.wait:
-    - user: git
+    - runas: git
     - cwd: /home/git/gitlab
     - name: bundle exec rake db:migrate RAILS_ENV=production
     - shell: /bin/bash
@@ -132,7 +132,7 @@ gitlab-migrate-db:
 
 gitlab-recompile-assets:
   cmd.wait:
-    - user: git
+    - runas: git
     - cwd: /home/git/gitlab
     - name: bundle exec rake assets:clean assets:precompile RAILS_ENV=production
     - shell: /bin/bash
@@ -143,7 +143,7 @@ gitlab-recompile-assets:
 
 gitlab-clear-cache:
   cmd.wait:
-    - user: git
+    - runas: git
     - cwd: /home/git/gitlab
     - name: bundle exec rake cache:clear RAILS_ENV=production
     - shell: /bin/bash
@@ -155,7 +155,7 @@ gitlab-clear-cache:
 # Needed to be able to update tree via git
 gitlab-stash:
   cmd.wait:
-    - user: git
+    - runas: git
     - cwd: /home/git/gitlab
     - name: git stash
     - watch:
