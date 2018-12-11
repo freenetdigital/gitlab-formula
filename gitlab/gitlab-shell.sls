@@ -28,7 +28,7 @@ gitlab-shell-config:
 
 gitlab-shell:
   cmd.wait:
-    - user: git
+    - runas: git
     - cwd: /home/git/gitlab-shell
     - name: ./bin/install
     - shell: /bin/bash
